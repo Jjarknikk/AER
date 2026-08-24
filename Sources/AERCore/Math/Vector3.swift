@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Vector3: Equatable, Sendable {
+public struct Vector3: Equatable, Codable, Sendable {
     public var x: Double
     public var y: Double
     public var z: Double
