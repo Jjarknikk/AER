@@ -14,7 +14,11 @@ let package = Package(
     targets: [
         .target(name: "AERCore"),
         .executableTarget(name: "aer-sim", dependencies: ["AERCore"]),
-        .executableTarget(name: "AERMac", dependencies: ["AERCore"]),
+        .executableTarget(
+            name: "AERMac",
+            dependencies: ["AERCore"],
+            resources: [.process("Resources")]
+        ),
         .testTarget(name: "AERCoreTests", dependencies: ["AERCore"])
     ]
 )

@@ -72,12 +72,52 @@ final class AERCoreTests: XCTestCase {
         XCTAssertGreaterThan(moving.predictedOrientation.yaw, moving.orientation.yaw)
     }
 
-    func testAERIMURecordingRoundTrips() throws {
+    func testAERIMURecordingV2RoundTrips() throws {
         let source = SyntheticIMU.yawSweep(duration: 0.2, sampleRate: 20)
-        let recording = AERIMURecording(source: "synthetic", nominalSampleRateHz: 20, samples: source)
+        let header = AERIMUHeader(
+            createdAtUTC: "2026-08-24T20:00:00Z",
+            device: .air1,
+            units: .normalizedSI,
+            timestampSource: .synthetic,
+            calibrationTransform: .identity,
+            notes: "fixture"
+        )
+        let recording = AERIMURecording(
+            source: "synthetic",
+            nominalSampleRateHz: 20,
+            header: header,
+            samples: source
+        )
         let decoded = try AERIMURecording.decode(recording.encoded())
         XCTAssertEqual(decoded, recording)
+        XCTAssertEqual(decoded.formatVersion, 2)
+        XCTAssertEqual(decoded.header?.device?.productID, 0x0424)
+        XCTAssertTrue(decoded.header?.calibrationTransform.isValid == true)
+    }
+
+    func testAERIMUStillDecodesV1WithoutHeader() throws {
+        let legacy = #"{"formatVersion":1,"source":"legacy","nominalSampleRateHz":60,"samples":[]}"#.data(using: .utf8)!
+        let decoded = try AERIMURecording.decode(legacy)
         XCTAssertEqual(decoded.formatVersion, 1)
+        XCTAssertEqual(decoded.source, "legacy")
+        XCTAssertNil(decoded.header)
+    }
+
+    func testSpatialInputContractsCarryPoseAndHands() {
+        let head = HeadPoseSample(
+            timestamp: 1,
+            orientation: Orientation(yaw: 0.1, pitch: 0.2, roll: 0.3),
+            angularVelocity: Vector3(x: 1, y: 2, z: 3)
+        )
+        XCTAssertEqual(head.orientation.pitch, 0.2, accuracy: 0.0001)
+
+        let hand = HandPoseSample(
+            timestamp: 1,
+            handedness: .right,
+            joints: [.indexTip: Vector3(x: 0.1, y: 0.2, z: 0.3)],
+            confidence: 0.9
+        )
+        XCTAssertEqual(hand.joints[.indexTip]?.z ?? .nan, 0.3, accuracy: 0.0001)
     }
 
     func testXREALAir1Identifiers() {

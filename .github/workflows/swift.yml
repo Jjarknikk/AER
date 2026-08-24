@@ -1,11 +1,12 @@
-name: Swift core
+name: Swift
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  core-linux:
+    name: Core tests (Linux)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +15,22 @@ jobs:
           swift-version: "6.0"
       - run: swift test
       - run: swift run aer-sim --stationary > /tmp/aer-sim.csv
+
+  macos-app:
+    name: macOS app + Metal
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Run core tests
+        run: swift test
+      - name: Build AERMac
+        run: swift build --product AERMac
+      - name: Compile Metal shader
+        run: |
+          xcrun -sdk macosx metal \
+            -c Sources/AERMac/Resources/AERViewport.metal \
+            -o /tmp/AERViewport.air

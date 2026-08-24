@@ -1,9 +1,22 @@
 #if os(macOS)
+import Foundation
 import Metal
 
-/// Owns the GPU resources for the final ScreenCaptureKit -> Metal -> Air path.
-/// The first milestone is deliberately modest: prove that a device, queue and
-/// shader library can be created before connecting captured IOSurfaces.
+enum AERRendererError: LocalizedError {
+    case shaderResourceMissing
+
+    var errorDescription: String? {
+        switch self {
+        case .shaderResourceMissing:
+            return "AERViewport.metal is missing from the app resources"
+        }
+    }
+}
+
+/// Owns the GPU resources for the ScreenCaptureKit -> Metal -> Air path.
+///
+/// The Metal source lives as a package resource so the exact shader used by the
+/// app is also compiled independently by macOS CI with `xcrun metal`.
 final class MetalViewportRenderer {
     private(set) var device: MTLDevice?
     private(set) var commandQueue: MTLCommandQueue?
@@ -16,7 +29,11 @@ final class MetalViewportRenderer {
         commandQueue = device.makeCommandQueue()
 
         do {
-            shaderLibrary = try device.makeLibrary(source: Self.shaderSource, options: nil)
+            guard let shaderURL = Bundle.module.url(forResource: "AERViewport", withExtension: "metal") else {
+                throw AERRendererError.shaderResourceMissing
+            }
+            let source = try String(contentsOf: shaderURL, encoding: .utf8)
+            shaderLibrary = try device.makeLibrary(source: source, options: nil)
         } catch {
             initializationError = error
         }
@@ -31,42 +48,5 @@ final class MetalViewportRenderer {
         }
         return "Metal renderer ready"
     }
-
-    private static let shaderSource = #"""
-    #include <metal_stdlib>
-    using namespace metal;
-
-    struct VertexOut {
-        float4 position [[position]];
-        float2 uv;
-    };
-
-    vertex VertexOut aerVertex(uint vertexID [[vertex_id]]) {
-        constexpr float2 positions[3] = {
-            float2(-1.0, -1.0),
-            float2( 3.0, -1.0),
-            float2(-1.0,  3.0)
-        };
-        constexpr float2 uvs[3] = {
-            float2(0.0, 1.0),
-            float2(2.0, 1.0),
-            float2(0.0, -1.0)
-        };
-        VertexOut out;
-        out.position = float4(positions[vertexID], 0.0, 1.0);
-        out.uv = uvs[vertexID];
-        return out;
-    }
-
-    fragment float4 aerCrop(
-        VertexOut in [[stage_in]],
-        texture2d<float> source [[texture(0)]],
-        sampler sourceSampler [[sampler(0)]],
-        constant float2 &viewportOrigin [[buffer(0)]],
-        constant float2 &viewportSize [[buffer(1)]]) {
-        float2 uv = viewportOrigin + in.uv * viewportSize;
-        return source.sample(sourceSampler, uv);
-    }
-    """#
 }
 #endif

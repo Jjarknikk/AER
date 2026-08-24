@@ -8,3 +8,8 @@ DerivedData/
 .vscode/
 coverage/
 *.dSYM/
+
+# Physical motion / hardware captures stay local by default.
+captures/
+*.aerimu
+!Tests/Fixtures/**/*.aerimu
