@@ -72,6 +72,14 @@ final class AERCoreTests: XCTestCase {
         XCTAssertGreaterThan(moving.predictedOrientation.yaw, moving.orientation.yaw)
     }
 
+    func testAERIMURecordingRoundTrips() throws {
+        let source = SyntheticIMU.yawSweep(duration: 0.2, sampleRate: 20)
+        let recording = AERIMURecording(source: "synthetic", nominalSampleRateHz: 20, samples: source)
+        let decoded = try AERIMURecording.decode(recording.encoded())
+        XCTAssertEqual(decoded, recording)
+        XCTAssertEqual(decoded.formatVersion, 1)
+    }
+
     func testXREALAir1Identifiers() {
         XCTAssertEqual(XREALDeviceDescriptor.air1.vendorID, 0x3318)
         XCTAssertEqual(XREALDeviceDescriptor.air1.productID, 0x0424)
