@@ -1,15 +1,15 @@
 # AERMac
 
-The shipping macOS menu-bar application will live here.
+The live SwiftPM macOS target now lives under [`Sources/AERMac`](../../Sources/AERMac).
 
-The platform-independent tracking core is being built first so we can test pose handling and viewport behaviour before the glasses arrive.
+Current pre-hardware scaffold includes:
 
-Planned macOS layers:
+1. menu-bar SwiftUI application shell
+2. ScreenCaptureKit permission and display-discovery boundary
+3. Metal renderer initialization and viewport-crop shader
+4. virtual-display lifecycle boundary for the forthcoming `CGVirtualDisplay` backend
+5. Anchor / Follow / Recenter controls staged in the app model
 
-1. **AERHardwareMac** — XREAL USB HID discovery + IMU/MCU bridge.
-2. **AERVirtualDisplay** — `CGVirtualDisplay` lifecycle and resolution presets.
-3. **AERCapture** — ScreenCaptureKit capture of the virtual canvas.
-4. **AERRenderer** — Metal crop/warp/sharpen pipeline onto the physical Air display.
-5. **AERMenuBar** — device status, anchor/follow modes, recenter, brightness, refresh, tuning profiles.
+The platform-independent tracking engine remains in `AERCore` so pose filtering, prediction and viewport behaviour can be tested without physical glasses.
 
 `CGVirtualDisplay` is private API, so AER is expected to be distributed outside the Mac App Store.
