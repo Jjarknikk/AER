@@ -1,6 +1,6 @@
 # Roadmap
 
-## Phase 0 — before the glasses arrive
+## Phase 0 — hardware-independent core
 
 - [x] Establish project architecture.
 - [x] Record verified Air 1 USB identifiers.
@@ -10,10 +10,25 @@
 - [x] Implement deterministic orientation → viewport mapping.
 - [x] Add tests and CLI simulation.
 - [x] Create the macOS menu-bar application target.
-- [x] Add virtual display lifecycle boundary (private CGVirtualDisplay backend still pending).
+- [x] Add virtual display lifecycle boundary.
 - [x] Add ScreenCaptureKit permission/display-discovery skeleton.
-- [x] Add Metal renderer + crop shader skeleton.
-- [x] Add `.aerimu` recording/replay data format so real sessions can become regression fixtures.
+- [x] Add Metal renderer skeleton.
+- [x] Add `.aerimu` recording/replay model.
+
+## Phase 0.5 — before the glasses arrive
+
+- [x] Add native macOS CI that builds `AERMac` and compiles the Metal shader.
+- [x] Add synthetic `HeadPoseSource` with mouse/slider and local keyboard controls.
+- [x] Add synthetic pose → viewport preview state for Anchor/Follow development.
+- [x] Add read-only Air 1 HID discovery / attach-detach monitor.
+- [x] Add raw HID packet logging sink for arrival-day protocol captures.
+- [x] Formalise `.aerimu` v2 metadata: device, units, timestamp source and calibration transform.
+- [x] Ignore real hardware/motion captures by default.
+- [x] Add generic head/translation/hand/gesture source interfaces.
+- [x] Document privacy/permissions and third-party licensing boundaries.
+- [ ] Wire the private `CGVirtualDisplay` backend behind `VirtualDisplayCoordinator`.
+- [ ] Feed ScreenCaptureKit frames into the Metal viewport renderer.
+- [ ] Render the synthetic pose crop live on a normal Mac display before Air hardware arrives.
 
 ## Phase 1 — arrival day
 
@@ -21,11 +36,13 @@
 - [ ] Confirm Air enumerates as USB VID `0x3318`, PID `0x0424`.
 - [ ] Confirm external display at stock 1920×1080.
 - [ ] Confirm MCU + IMU HID interfaces are accessible.
+- [ ] Capture raw HID reports from every Air interface before decoding assumptions are added.
 - [ ] Capture 30 seconds of raw stationary IMU data.
 - [ ] Capture controlled yaw/pitch/roll recordings.
 - [ ] Determine sensor axis order, signs and units.
 - [ ] Add hardware calibration transform.
 - [ ] Measure real IMU sample rate and jitter.
+- [ ] Populate `.aerimu` device/firmware metadata for the physical pair.
 
 ## Phase 2 — first spatial prototype
 
@@ -42,7 +59,7 @@
 
 - [ ] Per-user calibration profile.
 - [ ] Adaptive smoothing based on angular velocity.
-- [ ] 1-frame motion prediction.
+- [ ] 1-frame motion prediction tuning against measured latency.
 - [ ] Screen distance / size abstractions.
 - [ ] Curved ultrawide mode.
 - [ ] Multi-monitor/workspace presets.
@@ -52,7 +69,10 @@
 
 ## Phase 4 — experiments
 
-- [ ] Webcam-assisted X/Y/Z head position.
+- [ ] Webcam-assisted X/Y/Z head position through `TranslationSource`.
 - [ ] IMU + Vision head-pose fusion.
+- [ ] Vision webcam hand-pose source.
+- [ ] Optional Ultraleap hand-pose source.
+- [ ] Gesture → spatial display/window interaction router.
 - [ ] 1920×1200 Air 1 firmware experiment on a fully recoverable setup only.
 - [ ] Pixel/Android proof-of-concept after Mac behaviour is mature.

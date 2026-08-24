@@ -18,6 +18,9 @@ XREAL Air 1
   └─ USB HID IMU ──> Hardware adapter ──> pose filter   │
                                       │                  │
                                       v                  │
+                              HeadPoseSource             │
+                                      │                  │
+                                      v                  │
                              orientation + prediction    │
                                       │                  │
 CGVirtualDisplay ──> ScreenCaptureKit ──> Metal compositor
@@ -26,34 +29,53 @@ CGVirtualDisplay ──> ScreenCaptureKit ──> Metal compositor
                            fullscreen Air 1 output
 ```
 
+Before hardware arrives, `SyntheticHeadPoseSource` replaces the Air branch. This lets us validate pose mapping and compositor behaviour without changing the downstream architecture.
+
 ## Module boundaries
 
 ### AERCore
+
 Pure Swift, no AppKit/Metal/IOKit. Contains:
 
-- IMU sample model
+- IMU sample and `.aerimu` recording models
 - quaternion/vector math
 - Madgwick 6-axis orientation filter
 - calibration-neutral yaw/pitch/roll representation
 - spatial profile values
 - orientation-to-viewport mapping
 - deterministic synthetic motion data
+- normalized spatial input contracts
 
 This core compiles and tests without physical hardware.
 
 ### AERHardwareMac
-Mac-only HID layer. Initial implementation should wrap proven MIT-licensed community protocol work rather than reverse-engineer every packet again.
 
-Hardware coordinate transforms belong here. `AERCore` must not assume the XREAL sensor's native axis order/sign.
+Mac-only HID layer. The pre-hardware implementation is deliberately read-only: it discovers the known Air 1 VID/PID, detects interface appearance/disappearance and provides a raw-report logging boundary.
+
+The production IMU decoder should wrap proven MIT-licensed community protocol work rather than reverse-engineer every packet from scratch. Hardware coordinate transforms belong here. `AERCore` must not assume the XREAL sensor's native axis order/sign.
+
+### AERInput
+
+All tracking/interaction providers normalize into source protocols:
+
+- `HeadPoseSource` — rotational pose; synthetic now, Air IMU later.
+- `TranslationSource` — optional XYZ translation; future webcam desk tracking.
+- `HandPoseSource` — optional hand joints; future Vision/Ultraleap.
+- `GestureSource` — semantic interaction events independent of the hand sensor.
+
+The renderer must never depend directly on a specific sensor SDK.
 
 ### AERVirtualDisplay
-Creates the larger macOS canvas. Initial target is 3840×2160 with a 1920×1080 physical viewport.
+
+Creates the larger macOS canvas. Initial target is 3840×2160 with a 1920×1080 physical viewport. `CGVirtualDisplay` is private API and remains isolated behind a small lifecycle coordinator.
 
 ### AERCapture
-ScreenCaptureKit captures the virtual display into IOSurfaces.
+
+ScreenCaptureKit captures the virtual display into GPU-friendly surfaces.
 
 ### AERRenderer
-Metal renders the moving viewport to the glasses. Eventually this layer can also provide:
+
+Metal renders the moving viewport to the glasses. The shader is a real package resource and is independently compiled in macOS CI. Eventually this layer can also provide:
 
 - sub-frame pose updates
 - motion prediction
@@ -81,4 +103,4 @@ A later experimental desk-only 6DoF mode can fuse:
 - Air IMU for low-latency rotation
 - Mac camera head pose for X/Y/Z translation
 
-That should be treated as an optional tracking source, never a dependency of the base spatial mode.
+That translation is an optional `TranslationSource`, never a dependency of the base spatial mode.

@@ -19,7 +19,7 @@ system_profiler SPDisplaysDataType
 system_profiler SPUSBDataType
 ```
 
-Record the output under `captures/<date>/baseline/`.
+Record the output under `captures/<date>/baseline/`. `captures/` is intentionally ignored by git.
 
 Expected Air 1 USB identity from community drivers:
 
@@ -37,9 +37,15 @@ Then verify:
 - audio left/right
 - all four corners readable with small text
 
-## 3. Capture IMU truth data
+## 3. Capture USB/HID truth before decoding
 
-The first raw recordings should be deliberately boring:
+Start AER's read-only hardware monitor and record which HID interfaces appear. Capture raw input reports from each relevant interface into `captures/<date>/hid/` before changing any decoder assumptions.
+
+Do not enable MCU writes during this stage.
+
+## 4. Capture IMU truth data
+
+The first normalized `.aerimu` recordings should be deliberately boring:
 
 1. 30 s stationary on a desk.
 2. 10 slow yaw rotations left/right, returning to centre.
@@ -47,9 +53,11 @@ The first raw recordings should be deliberately boring:
 4. 10 slow roll movements.
 5. Normal head movement for 60 s.
 
-These captures become fixtures for filter tuning; never tune exclusively against live perception.
+Populate the v2 header with model/VID/PID, firmware if it can be read safely, measured units, timestamp source and the current calibration transform.
 
-## 4. Only then enable spatial rendering
+These captures become fixtures for filter tuning; never tune exclusively against live perception. Curated fixtures may be copied into `Tests/Fixtures/`, but personal captures remain local.
+
+## 5. Only then enable spatial rendering
 
 First target:
 
