@@ -4,26 +4,38 @@
 
 AER's first target is the original **Nreal/XREAL Air (NR-7100RGL)** connected directly to a Mac over USB-C. The aim is to provide a lightweight, hackable alternative to Beam/Nebula: anchored displays, smooth follow, custom workspaces and image/tracking controls, while keeping firmware modification optional and isolated.
 
-> Status: **Phase 0 / hardware-independent core**. The glasses have not been connected to this project yet.
+> Status: **Phase 0.5 / pre-hardware scaffold**. The core tracking stack and macOS application boundaries exist; the physical Air 1 has not yet been connected to AER.
 
 ## What already works
 
-The repository starts with a testable platform-neutral core:
+The repository now contains:
 
 - quaternion/vector math
 - 6-axis Madgwick orientation filter
 - deterministic synthetic IMU streams
 - orientation → virtual viewport mapping
+- short-horizon pose prediction
+- `.aerimu` JSON recording format for future real sensor captures
 - spatial tuning profile model
 - verified Air 1/Air 2 USB identifiers
 - CLI simulation for development before hardware arrives
+- macOS menu-bar application target
+- ScreenCaptureKit permission/display-discovery boundary
+- Metal viewport renderer + crop shader skeleton
+- virtual-display lifecycle boundary ready for a CGVirtualDisplay backend
 - unit tests
 
-Run it now:
+Run the hardware-independent checks now:
 
 ```bash
 swift test
 swift run aer-sim
+```
+
+On macOS, the app target is:
+
+```bash
+swift run AERMac
 ```
 
 The simulator prints a synthetic yaw sweep and the corresponding viewport position in a 3840×2160 virtual canvas.
@@ -41,7 +53,7 @@ CGVirtualDisplay ──> ScreenCaptureKit ────────────�
                                            XREAL Air display
 ```
 
-The macOS app will be a menu-bar utility with:
+The macOS app is being built around:
 
 - **Anchor** — world-ish fixed 3DoF display
 - **Follow** — damped head-following display
