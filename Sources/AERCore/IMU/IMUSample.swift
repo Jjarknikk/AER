@@ -1,6 +1,6 @@
 import Foundation
 
-public struct IMUSample: Equatable, Sendable {
+public struct IMUSample: Equatable, Codable, Sendable {
     /// Monotonic timestamp in seconds. Only deltas are significant.
     public var timestamp: Double
     /// Angular velocity in radians per second.
