@@ -9,11 +9,11 @@
 - [x] Implement synthetic IMU input for development without hardware.
 - [x] Implement deterministic orientation → viewport mapping.
 - [x] Add tests and CLI simulation.
-- [ ] Create the macOS application/Xcode target.
-- [ ] Add virtual display wrapper.
-- [ ] Add ScreenCaptureKit capture skeleton.
-- [ ] Add Metal renderer skeleton.
-- [ ] Add a replay-file IMU source (`.aerimu`) so real sessions can become regression tests.
+- [x] Create the macOS menu-bar application target.
+- [x] Add virtual display lifecycle boundary (private CGVirtualDisplay backend still pending).
+- [x] Add ScreenCaptureKit permission/display-discovery skeleton.
+- [x] Add Metal renderer + crop shader skeleton.
+- [x] Add `.aerimu` recording/replay data format so real sessions can become regression fixtures.
 
 ## Phase 1 — arrival day
 
